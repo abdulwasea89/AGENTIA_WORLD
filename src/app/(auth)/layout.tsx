@@ -9,8 +9,8 @@ export default function AuthLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="container relative min-h-screen flex items-center justify-center mx-auto w-full">
-            <div className="lg:p-8 mx-auto w-full max-w-sm">
+        <div className="">
+            <div className="lg:p-8 ">
                 <Link href="/" className="absolute top-4 left-4">
                     <Button size="sm" variant="outline">
                         <ArrowLeftIcon className="size-4 mr-1" />

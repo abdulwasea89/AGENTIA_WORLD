@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { base, heading } from "@/constants/fonts";
 import { cn } from "@/lib";
-import "@/styles/globals.css";
+import "./globals.css";
 import { generateMetadata } from "@/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 

@@ -93,3 +93,10 @@ image {
   user-select: none;
   pointer-events: none;
 }
+
+
+
+.clip-custom {
+  clip-path: path("M0,0 H100% V100% H20 Q0 100, 0 80 Z"
+    );
+}
