@@ -19,11 +19,6 @@ export const signInSchema = z.object({
     password: z
         .string()
         .min(8, "Password must be at least 8 characters")
-        // Use the same regex for consistency with sign-up.
-        .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-            "Invalid password format"
-        )
 });
 
 export const otpSchema = z.object({
