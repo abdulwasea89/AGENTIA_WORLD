@@ -3,155 +3,88 @@
 import Icons from "@/components/global/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-import { useSignUp } from '@clerk/nextjs';
+import { useSignUp } from "@clerk/nextjs";
 import { LoaderIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import React, { useState } from 'react';
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signUpSchema, otpSchema, type SignUpFormData, type OtpFormData } from "@/lib/validations";
 
 const SignUpPage = () => {
-
-    const { isLoaded, signUp, setActive } = useSignUp();
-
     const router = useRouter();
-
-    const [name, setName] = useState('');
-    const [emailAddress, setEmailAddress] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(false);
+    const { isLoaded, signUp, setActive } = useSignUp();
     const [verified, setVerified] = useState(false);
-    const [code, setCode] = useState('');
+    const [submittedEmail, setSubmittedEmail] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const signUpForm = useForm<SignUpFormData>({
+        resolver: zodResolver(signUpSchema),
+        defaultValues: { name: "", email: "", password: "" }
+    });
+
+    const otpForm = useForm<OtpFormData>({
+        resolver: zodResolver(otpSchema),
+        defaultValues: { code: "" }
+    });
+
+    const handleSignUp = async (data: SignUpFormData) => {
         if (!isLoaded) return;
 
-        if (!name || !emailAddress || !password) {
-            return toast.warning("Please fill in all fields");
-        }
-
-        setIsLoading(true);
-
         try {
-            await signUp.create({
-                emailAddress,
-                password,
+            const signUpAttempt = await signUp.create({
+                emailAddress: data.email,
+                password: data.password,
             });
 
-            await signUp.prepareEmailAddressVerification({
-                strategy: 'email_code',
-            });
-
+            // Send verification code
+            await signUpAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
+            setSubmittedEmail(data.email);
             setVerified(true);
 
+            // Update user name
             await signUp.update({
-                firstName: name.split(" ")[0],
-                lastName: name.split(" ")[1],
+                firstName: data.name.split(" ")[0],
+                lastName: data.name.split(" ")[1] || "",
             });
-        } catch (err: any) {
-            console.error(JSON.stringify(err, null, 2));
 
-            switch (err.errors[0]?.code) {
-                case "form_identifier_exists":
-                    toast.error("This email is already registered. Please sign in.");
+        } catch (err) {
+            console.error(JSON.stringify(err, null, 2));
+            const error = err as { errors?: Array<{ code?: string }> };
+            switch (error.errors?.[0]?.code) {
+                case 'form_identifier_exists':
+                    toast.error("Email already registered. Please sign in instead.");
                     break;
-                case "form_password_pwned":
-                    toast.error("The password is too common. Please choose a stronger password.");
-                    break;
-                case "form_param_format_invalid":
-                    toast.error("Invalid email address. Please enter a valid email address.");
-                    break;
-                case "form_password_length_too_short":
-                    toast.error("Password is too short. Please choose a longer password.");
+                case 'form_password_length_too_short':
+                    toast.error("Password must be at least 8 characters");
                     break;
                 default:
                     toast.error("An error occurred. Please try again");
-                    break;
             }
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const verifyOtp = async (data: OtpFormData) => {
         if (!isLoaded) return;
-
-        if (!code) {
-            return toast.warning("Verification code is required");
-        }
-
-        setIsVerifying(true);
 
         try {
             const completeSignUp = await signUp.attemptEmailAddressVerification({
-                code,
+                code: data.code,
             });
 
-            if (completeSignUp.status === 'complete') {
+            if (completeSignUp.status === "complete") {
                 await setActive({ session: completeSignUp.createdSessionId });
-                router.push('/dashboard');
-            } else {
-                console.error(JSON.stringify(completeSignUp, null, 2));
-                toast.error("Invalid verification code");
+                router.push("/dashboard");
             }
-        } catch (err: any) {
-            console.error('Error:', JSON.stringify(err, null, 2));
-            toast.error("An error occurred. Please try again");
-        } finally {
-            setIsVerifying(false);
+        } catch (err) {
+            console.error(JSON.stringify(err, null, 2));
+            toast.error("Invalid verification code. Please try again.");
         }
     };
 
-    return verified ? (
-        <div className="flex flex-col space-y-6">
-            <div className="flex flex-col space-y-2 text-center">
-                <Icons.icon className="h-6 mx-auto" />
-                <h1 className="text-2xl font-semibold tracking-tight pt-2">
-                    Please check your email
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                    We&apos;ve sent a verification code to {emailAddress}
-                </p>
-            </div>
-
-            <form onSubmit={handleVerify} className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                    <Label htmlFor="code">Verification code</Label>
-                    <InputOTP
-                        maxLength={6}
-                        value={code}
-                        disabled={isVerifying}
-                        onChange={(e) => setCode(e)}
-                    >
-                        <InputOTPGroup className="justify-center w-full">
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                    </InputOTP>
-                </div>
-                <Button type="submit" disabled={isVerifying}>
-                    {isVerifying ? (
-                        <LoaderIcon className="w-5 h-5 animate-spin" />
-                    ) : "Verify"}
-                </Button>
-                <p className="text-center text-sm text-muted-foreground">
-                    Back to signup{" "}
-                    <Button variant="link" type="button" disabled={isVerifying} onClick={() => setVerified(false)}>
-                        Sign up
-                    </Button>
-                </p>
-            </form>
-        </div>
-    ) : (
+    return (
         <div className="flex flex-col space-y-6">
             <div className="flex flex-col space-y-2 text-center">
                 <Icons.icon className="h-6 mx-auto" />
@@ -159,56 +92,90 @@ const SignUpPage = () => {
                     Create an account
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                    Enter your details below to create your account
+                    Enter your details to get started
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                        id="name"
-                        type="text"
-                        name="name"
-                        value={name}
-                        disabled={isLoading}
-                        placeholder="Enter your name"
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        name="email"
-                        disabled={isLoading}
-                        value={emailAddress}
-                        placeholder="name@example.com"
-                        onChange={(e) => setEmailAddress(e.target.value)}
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
+            {verified ? (
+                <form onSubmit={otpForm.handleSubmit(verifyOtp)} className="flex flex-col gap-6">
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground">
+                            We&lsquo;ve sent a 6-digit code to {submittedEmail}
+                        </p>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="code">Verification Code</Label>
+                        <Input
+                            id="code"
+                            placeholder="123456"
+                            {...otpForm.register("code")}
+                        />
+                        {otpForm.formState.errors.code && (
+                            <p className="text-sm text-red-500">
+                                {otpForm.formState.errors.code.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <Button type="submit" disabled={otpForm.formState.isSubmitting}>
+                        {otpForm.formState.isSubmitting ? (
+                            <LoaderIcon className="w-4 h-4 animate-spin" />
+                        ) : "Verify Code"}
+                    </Button>
+                </form>
+            ) : (
+                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                            id="name"
+                            placeholder="John Doe"
+                            {...signUpForm.register("name")}
+                        />
+                        {signUpForm.formState.errors.name && (
+                            <p className="text-sm text-red-500">
+                                {signUpForm.formState.errors.name.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            placeholder="name@example.com"
+                            {...signUpForm.register("email")}
+                        />
+                        {signUpForm.formState.errors.email && (
+                            <p className="text-sm text-red-500">
+                                {signUpForm.formState.errors.email.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="password">Password</Label>
                         <Input
                             id="password"
                             type="password"
-                            name="password"
-                            disabled={isLoading}
-                            value={password}
                             placeholder="••••••••"
-                            onChange={(e) => setPassword(e.target.value)}
+                            {...signUpForm.register("password")}
                         />
+                        {signUpForm.formState.errors.password && (
+                            <p className="text-sm text-red-500">
+                                {signUpForm.formState.errors.password.message}
+                            </p>
+                        )}
                     </div>
-                </div>
-                <div id="clerk-captcha"></div>
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                        <LoaderIcon className="w-4 h-4 animate-spin" />
-                    ) : "Continue"}
-                </Button>
-            </form>
+
+                    <Button type="submit" disabled={signUpForm.formState.isSubmitting}>
+                        {signUpForm.formState.isSubmitting ? (
+                            <LoaderIcon className="w-4 h-4 animate-spin" />
+                        ) : "Continue"}
+                    </Button>
+                </form>
+            )}
 
             <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}

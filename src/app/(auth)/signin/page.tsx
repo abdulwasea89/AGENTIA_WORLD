@@ -1,3 +1,4 @@
+
 "use client";
 
 import Icons from "@/components/global/icons";
@@ -10,31 +11,31 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from 'react';
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signInSchema, type SignInFormData } from "@/lib/validations";
 
-const SignInPage = () => {
-
+const SignInPage = () => {  
     const router = useRouter();
-
     const { isLoaded, signIn, setActive } = useSignIn();
-
-    const [emailAddress, setEmailAddress] = useState('');
-    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<SignInFormData>({
+        resolver: zodResolver(signInSchema),
+    });
+
+    const onSubmit = async (data: SignInFormData) => {
         if (!isLoaded) return;
-
-        if (!emailAddress || !password) {
-            return toast.warning("Please fill in all fields");
-        }
-
         setIsLoading(true);
 
         try {
             const signInAttempt = await signIn.create({
-                identifier: emailAddress,
-                password,
+                identifier: data.email,
+                password: data.password,
                 redirectUrl: "/dashboard"
             });
 
@@ -45,9 +46,10 @@ const SignInPage = () => {
                 console.error(JSON.stringify(signInAttempt, null, 2));
                 toast.error("Invalid email or password");
             }
-        } catch (err: any) {
+        } catch (err) {
             console.error(JSON.stringify(err, null, 2));
-            switch (err.errors[0]?.code) {
+            const clerkError = err as { errors: Array<{ code: string }> };
+            switch (clerkError.errors[0]?.code) {
                 case 'form_identifier_not_found':
                     toast.error("This email is not registered. Please sign up first.");
                     break;
@@ -78,19 +80,21 @@ const SignInPage = () => {
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
                 <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                         id="email"
                         placeholder="name@example.com"
                         type="email"
-                        value={emailAddress}
-                        onChange={(e) => setEmailAddress(e.target.value)}
                         autoCapitalize="none"
                         autoComplete="email"
                         autoCorrect="off"
+                        {...register("email")}
                     />
+                    {errors.email && (
+                        <p className="text-sm text-red-500">{errors.email.message}</p>
+                    )}
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
@@ -98,9 +102,11 @@ const SignInPage = () => {
                         id="password"
                         placeholder="••••••••"
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        {...register("password")}
                     />
+                    {errors.password && (
+                        <p className="text-sm text-red-500">{errors.password.message}</p>
+                    )}
                 </div>
                 <div id="clerk-captcha"></div>
                 <Button type="submit" disabled={isLoading}>
@@ -111,7 +117,7 @@ const SignInPage = () => {
             </form>
 
             <p className="text-center text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                     href="/signup"
                     className="underline underline-offset-4 hover:text-primary"
