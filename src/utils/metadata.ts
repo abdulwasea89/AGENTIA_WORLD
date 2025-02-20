@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const generateMetadata = ({
     title = `${process.env.NEXT_PUBLIC_APP_NAME} | Home`,
-    description = `Manage your real estate properties with ease.`,
+    description = ``,
     image = "/thumbnail.png",
     icons = [
         {

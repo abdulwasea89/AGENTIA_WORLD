@@ -1,11 +1,11 @@
-import { PERKS } from '@/constants';
+import { KeyBenefits, type KeyBenefit } from '@/constants/keybenefits';
 import { cn } from "@/lib";
 import Image from 'next/image';
 import AnimationContainer from './global/animation-container';
 import Wrapper from "./global/wrapper";
 import SectionBadge from './ui/section-badge';
 
-const Perks = () => {
+const KeyBenefitsSection = () => {
     return (
         <Wrapper className="py-20 lg:py-32 relative">
             <div className="flex flex-col items-center text-center gap-4">
@@ -18,14 +18,12 @@ const Perks = () => {
                          Key Benefits
                         <br />
                                 Empowering Developers & Buyers
-
                     </h2>
                 </AnimationContainer>
 
                 <AnimationContainer animation="fadeUp" delay={0.4}>
                     <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
                                 Unlock efficiency, security, and seamless experiences.
-
                     </p>
                 </AnimationContainer>
             </div>
@@ -44,7 +42,7 @@ const Perks = () => {
                 </div>
 
                 <div className="grid grid-cols-2 relative z-20">
-                    {PERKS.map((perk, index) => (
+                    {KeyBenefits.map((keybenefit: KeyBenefit, index: number) => (
                         <div
                             key={index}
                             className={cn(
@@ -59,8 +57,8 @@ const Perks = () => {
                                 <div className="flex flex-col items-center text-center gap-4">
                                     <div className="size-12 lg:size-16 rounded-lg lg:rounded-2xl bg-neutral-900 flex items-center justify-center">
                                         <Image
-                                            src={perk.icon}
-                                            alt={perk.title}
+                                            src={keybenefit.icon}
+                                            alt={keybenefit.title}
                                             width={1024}
                                             height={1024}
                                             className="size-8 lg:size-10"
@@ -68,10 +66,10 @@ const Perks = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <h3 className="text-lg md:text-xl font-medium">
-                                            {perk.title}
+                                            {keybenefit.title}
                                         </h3>
                                         <p className="text-xs md:text-sm text-muted-foreground max-w-[250px]">
-                                            {perk.description}
+                                            {keybenefit.description}
                                         </p>
                                     </div>
                                 </div>
@@ -84,4 +82,4 @@ const Perks = () => {
     );
 };
 
-export default Perks;
+export default KeyBenefitsSection;

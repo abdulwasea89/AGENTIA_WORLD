@@ -1,11 +1,11 @@
 import CTA from "@/components/cta";
 import FAQ from "@/components/faq";
-import Features from "@/components/features";
+import FeaturesAgents from "@/components/featuresagents";
 import Hero from "@/components/hero";
 import HowItWorks from "@/components/how-it-works";
-import Perks from "@/components/perks";
+import KeyBenefits from "@/components/keybenefits";
 import Pricing from "@/components/pricing";
-import Testimonials from "@/components/testimonials";
+import FeatureDeveloper from "@/components/featuredeveloper";
 
 const HomePage = () => {
     return (
@@ -15,7 +15,7 @@ const HomePage = () => {
             </section>
 
             <section className="w-full">
-                <Perks />
+                <KeyBenefits />
             </section>
 
             <section className="w-full">
@@ -23,11 +23,11 @@ const HomePage = () => {
             </section>
 
             <section className="w-full">
-                <Features />
+                <FeaturesAgents />
             </section>
 
             <section className="w-full">
-                <Testimonials />
+                <FeatureDeveloper />
             </section>
 
             <section className="w-full">

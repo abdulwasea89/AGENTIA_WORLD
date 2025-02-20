@@ -56,12 +56,6 @@ const HowItWorks = () => {
                                 </h3>
                             </div>
                             <div className="space-y-4 w-full">
-                                {/* <AnimationContainer
-                                    animation="fadeUp"
-                                    delay={0.9 + (index * 0.2)}
-                                >
-
-                                </AnimationContainer> */}
                                 <AnimationContainer
                                     animation="fadeUp"
                                     delay={1.1 + (index * 0.2)}

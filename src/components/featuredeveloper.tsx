@@ -1,4 +1,4 @@
-import { TESTIMONIALS } from '@/constants';
+import { FEATUREDEVELOPER } from '@/constants/featuredeveloper';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import AnimationContainer from './global/animation-container';
@@ -6,7 +6,7 @@ import Wrapper from "./global/wrapper";
 import Marquee from './ui/marquee';
 import SectionBadge from './ui/section-badge';
 
-const Testimonials = () => {
+const FeatureDeveloper = () => {
     return (
         <Wrapper className="py-20 lg:py-32">
             <div className="flex flex-col items-center text-center gap-4 mb-16">
@@ -32,7 +32,7 @@ const Testimonials = () => {
                 <div className="absolute -right-1 top-0 w-20 h-full bg-gradient-to-l from-[#101010] to-transparent z-10" />
 
                 <Marquee className="[--gap:1.5rem]" pauseOnHover>
-                    {TESTIMONIALS.map((testimonial, index) => (
+                    {FEATUREDEVELOPER.map((featuredeveloper: { image: string; author: string; role: string; content: string; rating: number }, index: number) => (
                         <AnimationContainer
                             key={index}
                             animation="fadeUp"
@@ -43,28 +43,28 @@ const Testimonials = () => {
                                     <div className="flex items-center gap-4">
                                         <div className="relative w-12 h-12 rounded-full overflow-hidden">
                                             <Image
-                                                src={testimonial.image}
-                                                alt={testimonial.author}
+                                                src={featuredeveloper.image}
+                                                alt={featuredeveloper.author}
                                                 fill
                                                 className="object-cover"
                                             />
                                         </div>
                                         <div>
                                             <h4 className="font-medium">
-                                                {testimonial.author}
+                                                {featuredeveloper.author}
                                             </h4>
                                             <p className="text-sm text-muted-foreground">
-                                                {testimonial.role}
+                                                {featuredeveloper.role}
                                             </p>
                                         </div>
                                     </div>
 
                                     <p className="text-lg">
-                                        {testimonial.content}
+                                        {featuredeveloper.content}
                                     </p>
 
                                     <div className="flex gap-1">
-                                        {[...Array(testimonial.rating)].map((_, i) => (
+                                        {[...Array(featuredeveloper.rating)].map((_, i) => (
                                             <Star
                                                 key={i}
                                                 className="w-5 h-5 fill-primary text-primary"
@@ -81,4 +81,4 @@ const Testimonials = () => {
     );
 };
 
-export default Testimonials;
+export default FeatureDeveloper;

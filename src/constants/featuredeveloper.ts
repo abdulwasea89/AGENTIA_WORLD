@@ -1,4 +1,4 @@
-export const TESTIMONIALS = [
+export const FEATUREDEVELOPER = [
     {
         content: "This AI development platform revolutionized how we build intelligent systems. ",
         author: "Alex",
